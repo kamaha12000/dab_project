@@ -1,0 +1,61 @@
+# This is a Declarative Automation Bundle definition for dab_project.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: dab_project
+  uuid: 1dfa9108-98b3-47d7-88bb-21b35e615c25
+
+include:
+  - resources/*.yml
+
+# Variable declarations. These variables are assigned in the dev/prod targets below.
+variables:
+  catalog:
+    description: The catalog to use
+  schema:
+    description: The schema to use
+  environment:
+    description: The environment name (dev/test/prod)
+
+targets:
+  dev:
+    # The default target uses 'mode: development' to create a development copy.
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-7405605607826488.8.azuredatabricks.net
+    variables:
+      catalog: citibike_dev
+      schema: dev
+      environment: dev
+    presets:
+      artifacts_dynamic_version: true
+  test:
+    mode: production
+    workspace:
+      host: https://adb-7405618294062256.16.azuredatabricks.net
+      # We explicitly deploy to /Workspace/Users/admin@createuservices.onmicrosoft.com to make sure we only have a single copy.
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: citibike_test
+      schema: prod
+      environment: test
+    permissions:
+      - user_name: admin@createuservices.onmicrosoft.com
+        level: CAN_MANAGE
+
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-7405606558649306.6.azuredatabricks.net
+      # We explicitly deploy to /Workspace/Users/admin@createuservices.onmicrosoft.com to make sure we only have a single copy.
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: citibike_prod
+      schema: prod
+      environment: prod
+    permissions:
+      - user_name: admin@createuservices.onmicrosoft.com
+        level: CAN_MANAGE
